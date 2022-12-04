@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "State-space equations in rust"
-repository = "https://github.com/sigurd4/state_space"
+repository = "https://github.com/sigurd4/state-space"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
