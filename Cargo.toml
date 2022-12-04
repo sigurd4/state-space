@@ -1,0 +1,14 @@
+[package]
+name = "state-space"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "State-space equations in rust"
+repository = "https://github.com/sigurd4/state_space"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num = "0.4.0"
+array-init = "2.0.1"
+array-matrix = "0.1.2"
