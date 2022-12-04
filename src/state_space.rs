@@ -1,7 +1,9 @@
-use num::{Float, NumCast};
+use num::{Float, Complex, One, Zero};
 use array_matrix::*;
+use transfer_function::TfS;
 
 /// State-space equation matrices A, B, C and D contained in one structure
+#[derive(Clone, Copy)]
 pub struct StateSpace<F: Float, const VARCOUNT: usize>
 where
     [[F; VARCOUNT]; VARCOUNT]: SquareMatrix,
@@ -308,5 +310,49 @@ where
     pub fn y(&self, x: [[F; 1]; VARCOUNT], u: F) -> F
     {
         self.c.mul(x)[0][0] + self.d*u
+    }
+
+    /// Returns the transfer function of the system
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// let tf = ss.tf();
+    /// ```
+    pub fn tf(&self) -> TfS<F>
+    where
+        [[TfS<F>; VARCOUNT]; VARCOUNT]: SquareMatrix
+            + Adj<Output = [[TfS<F>; VARCOUNT]; VARCOUNT]>
+            + Det<Output = TfS<F>>,
+        [[TfS<F>; 1]; VARCOUNT]: Matrix,
+        [[TfS<F>; VARCOUNT]; 1]: Matrix,
+        [[TfS<F>; 1]; 1]: SquareMatrix,
+    {
+        let is = matrix_init(|r, c| TfS::S*if r == c {Complex::one()} else {Complex::zero()});
+        let is_sub_a = is.sub(self.a);
+        let is_sub_a_inv = is_sub_a.adj().mul(is_sub_a.det().inv());
+        let c = self.c.map(|ci| ci.map(|cij| TfS::from(cij)));
+        let b = self.b.map(|bi| bi.map(|bij| TfS::from(bij)));
+        c.mul(is_sub_a_inv.mul(b))[0][0].clone() + self.d
+    }
+}
+
+impl<F: Float, const VARCOUNT: usize> Into<TfS<F>>
+for
+    StateSpace<F, VARCOUNT>
+where
+    [[TfS<F>; VARCOUNT]; VARCOUNT]: SquareMatrix
+        + Adj<Output = [[TfS<F>; VARCOUNT]; VARCOUNT]>
+        + Det<Output = TfS<F>>,
+    [[TfS<F>; 1]; VARCOUNT]: Matrix,
+    [[TfS<F>; VARCOUNT]; 1]: Matrix,
+    [[TfS<F>; 1]; 1]: SquareMatrix,
+    [[F; VARCOUNT]; VARCOUNT]: SquareMatrix,
+    [[F; 1]; VARCOUNT]: Matrix,
+    [[F; VARCOUNT]; 1]: Matrix
+{
+    fn into(self) -> TfS<F>
+    {
+        self.tf()
     }
 }
